@@ -1,2 +1,5 @@
-a:
-  include: 'data2.yaml'
+# apple
+ab: cool
+---
+# banana
+ab: fan

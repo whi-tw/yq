@@ -1,10 +1,13 @@
 package yqlib
 
 import (
+	"bytes"
 	"container/list"
+	"fmt"
 	"io"
 	"os"
 
+	parser "github.com/goccy/go-yaml/parser"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -89,40 +92,78 @@ func (s *streamEvaluator) EvaluateFiles(expression string, filenames []string, p
 
 func (s *streamEvaluator) Evaluate(filename string, reader io.Reader, node *ExpressionNode, printer Printer, leadingContent string) (uint, error) {
 
-	var currentIndex uint
-	decoder := yaml.NewDecoder(reader)
-	for {
-		var dataBucket yaml.Node
-		errorReading := decoder.Decode(&dataBucket)
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, reader); err != nil {
+		return 0, fmt.Errorf("failed to copy from reader: %w", err)
+	}
 
-		if errorReading == io.EOF {
-			s.fileIndex = s.fileIndex + 1
-			return currentIndex, nil
-		} else if errorReading != nil {
-			return currentIndex, errorReading
-		}
+	f, err := parser.ParseBytes(buf.Bytes(), parser.ParseComments)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to decode: %w", err)
+	}
+
+	for index, doc := range f.Docs {
+		currentIndex := uint(index)
+		log.Debugf("doc: <%v>", doc.String())
+		log.Debugf("start: <%v>", doc.Start)
+		log.Debugf("end: <%v>", doc.End)
+		log.Debugf("body: <%v>", doc.Body.String())
+		log.Debugf("comment: <%v>", doc.Body.GetComment())
 
 		candidateNode := &CandidateNode{
 			Document:  currentIndex,
-			Filename:  filename,
-			Node:      &dataBucket,
+			Filename:  f.Name,
+			Node:      &doc.Body, // should this be doc??
 			FileIndex: s.fileIndex,
 		}
-		if currentIndex == 0 {
-			candidateNode.LeadingContent = leadingContent
-		}
-		inputList := list.New()
-		inputList.PushBack(candidateNode)
 
-		result, errorParsing := s.treeNavigator.GetMatchingNodes(Context{MatchingNodes: inputList}, node)
+		result, errorParsing := s.treeNavigator.GetMatchingNodes(Context{MatchingNodes: candidateNode.AsList()}, node)
 		if errorParsing != nil {
 			return currentIndex, errorParsing
 		}
 		err := printer.PrintResults(result.MatchingNodes)
-
 		if err != nil {
 			return currentIndex, err
 		}
-		currentIndex = currentIndex + 1
 	}
+	return uint(len(f.Docs)), nil
+
+	// for {
+	// 	var dataBucket ast.Node
+	// 	errorReading := decoder.Decode(&dataBucket)
+
+	// 	if errorReading == io.EOF {
+	// 		s.fileIndex = s.fileIndex + 1
+	// 		return currentIndex, nil
+	// 	} else if errorReading != nil {
+	// 		return currentIndex, errorReading
+	// 	}
+	// 	log.Debugf("goccy! %v", dataBucket.Type().String())
+	// 	log.Debugf("goccy! %v", dataBucket.String())
+	// 	dataBucket.MarshalYAML()
+
+	// candidateNode := &CandidateNode{
+	// 	Document:  currentIndex,
+	// 	Filename:  filename,
+	// 	Node:      &dataBucket,
+	// 	FileIndex: s.fileIndex,
+	// }
+	// if currentIndex == 0 {
+	// 	candidateNode.LeadingContent = leadingContent
+	// }
+	// inputList := list.New()
+	// inputList.PushBack(candidateNode)
+
+	// result, errorParsing := s.treeNavigator.GetMatchingNodes(Context{MatchingNodes: inputList}, node)
+	// if errorParsing != nil {
+	// 	return currentIndex, errorParsing
+	// }
+	// err := printer.PrintResults(result.MatchingNodes)
+
+	// if err != nil {
+	// 	return currentIndex, err
+	// }
+	// currentIndex = currentIndex + 1
+	// }
 }

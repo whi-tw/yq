@@ -7,6 +7,7 @@ import (
 	"io"
 	"regexp"
 
+	ast "github.com/goccy/go-yaml/ast"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -78,7 +79,7 @@ func (p *resultsPrinter) PrintedAnything() bool {
 	return p.printedMatches
 }
 
-func (p *resultsPrinter) printNode(node *yaml.Node, writer io.Writer) error {
+func (p *resultsPrinter) printNode(node *ast.Node, writer io.Writer) error {
 	p.printedMatches = p.printedMatches || (node.Tag != "!!null" &&
 		(node.Tag != "!!bool" || node.Value != "false"))
 

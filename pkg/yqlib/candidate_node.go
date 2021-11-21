@@ -4,12 +4,12 @@ import (
 	"container/list"
 	"fmt"
 
+	ast "github.com/goccy/go-yaml/ast"
 	"github.com/jinzhu/copier"
-	yaml "gopkg.in/yaml.v3"
 )
 
 type CandidateNode struct {
-	Node   *yaml.Node     // the actual node
+	Node   *ast.Node      // the actual node
 	Parent *CandidateNode // parent node
 
 	LeadingContent string
@@ -38,7 +38,7 @@ func (n *CandidateNode) AsList() *list.List {
 	return elMap
 }
 
-func (n *CandidateNode) CreateChild(path interface{}, node *yaml.Node) *CandidateNode {
+func (n *CandidateNode) CreateChild(path interface{}, node *ast.Node) *CandidateNode {
 	return &CandidateNode{
 		Node:      node,
 		Path:      n.createChildPath(path),
@@ -75,37 +75,41 @@ func (n *CandidateNode) Copy() (*CandidateNode, error) {
 // updates this candidate from the given candidate node
 func (n *CandidateNode) UpdateFrom(other *CandidateNode) {
 
-	n.UpdateAttributesFrom(other)
-	n.Node.Content = other.Node.Content
-	n.Node.Value = other.Node.Value
+	// n.UpdateAttributesFrom(other)
+	// need to do this at the parent level with goccy
+	// as it involves changing the type!
+	// no update -immutable
+
+	// n.Node.Content = other.Node.Content
+	// n.Node.Value = other.Node.Value
 }
 
 func (n *CandidateNode) UpdateAttributesFrom(other *CandidateNode) {
-	log.Debug("UpdateAttributesFrom: n: %v other: %v", n.GetKey(), other.GetKey())
-	if n.Node.Kind != other.Node.Kind {
-		// clear out the contents when switching to a different type
-		// e.g. map to array
-		n.Node.Content = make([]*yaml.Node, 0)
-		n.Node.Value = ""
-	}
-	n.Node.Kind = other.Node.Kind
-	n.Node.Tag = other.Node.Tag
-	n.Node.Alias = other.Node.Alias
-	n.Node.Anchor = other.Node.Anchor
+	// log.Debug("UpdateAttributesFrom: n: %v other: %v", n.GetKey(), other.GetKey())
+	// if n.Node.Kind != other.Node.Kind {
+	// 	// clear out the contents when switching to a different type
+	// 	// e.g. map to array
+	// 	n.Node.Content = make([]*yaml.Node, 0)
+	// 	n.Node.Value = ""
+	// }
+	// n.Node.Kind = other.Node.Kind
+	// n.Node.Tag = other.Node.Tag
+	// n.Node.Alias = other.Node.Alias
+	// n.Node.Anchor = other.Node.Anchor
 
-	// merge will pickup the style of the new thing
-	// when autocreating nodes
-	if n.Node.Style == 0 {
-		n.Node.Style = other.Node.Style
-	}
+	// // merge will pickup the style of the new thing
+	// // when autocreating nodes
+	// if n.Node.Style == 0 {
+	// 	n.Node.Style = other.Node.Style
+	// }
 
-	if other.Node.FootComment != "" {
-		n.Node.FootComment = other.Node.FootComment
-	}
-	if other.Node.HeadComment != "" {
-		n.Node.HeadComment = other.Node.HeadComment
-	}
-	if other.Node.LineComment != "" {
-		n.Node.LineComment = other.Node.LineComment
-	}
+	// if other.Node.FootComment != "" {
+	// 	n.Node.FootComment = other.Node.FootComment
+	// }
+	// if other.Node.HeadComment != "" {
+	// 	n.Node.HeadComment = other.Node.HeadComment
+	// }
+	// if other.Node.LineComment != "" {
+	// 	n.Node.LineComment = other.Node.LineComment
+	// }
 }

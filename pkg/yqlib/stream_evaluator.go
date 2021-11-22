@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/goccy/go-yaml/ast"
 	parser "github.com/goccy/go-yaml/parser"
-	yaml "gopkg.in/yaml.v3"
 )
 
 // A yaml expression evaluator that runs the expression multiple times for each given yaml document.
@@ -38,7 +38,7 @@ func (s *streamEvaluator) EvaluateNew(expression string, printer Printer, leadin
 	candidateNode := &CandidateNode{
 		Document:       0,
 		Filename:       "",
-		Node:           &yaml.Node{Kind: yaml.DocumentNode, Content: []*yaml.Node{{Tag: "!!null", Kind: yaml.ScalarNode}}},
+		Node:           &ast.DocumentNode{Body: &ast.NullNode{}},
 		FileIndex:      0,
 		LeadingContent: leadingContent,
 	}
@@ -114,7 +114,7 @@ func (s *streamEvaluator) Evaluate(filename string, reader io.Reader, node *Expr
 		candidateNode := &CandidateNode{
 			Document:  currentIndex,
 			Filename:  f.Name,
-			Node:      &doc.Body, // should this be doc??
+			Node:      doc.Body, // should this be doc??
 			FileIndex: s.fileIndex,
 		}
 

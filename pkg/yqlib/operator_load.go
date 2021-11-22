@@ -1,97 +1,97 @@
 package yqlib
 
-import (
-	"bufio"
-	"container/list"
-	"fmt"
-	"io/ioutil"
-	"os"
+// import (
+// 	"bufio"
+// 	"container/list"
+// 	"fmt"
+// 	"io/ioutil"
+// 	"os"
 
-	"gopkg.in/yaml.v3"
-)
+// 	"gopkg.in/yaml.v3"
+// )
 
-type loadPrefs struct {
-	loadAsString bool
-}
+// type loadPrefs struct {
+// 	loadAsString bool
+// }
 
-func loadString(filename string) (*CandidateNode, error) {
-	// ignore CWE-22 gosec issue - that's more targetted for http based apps that run in a public directory,
-	// and ensuring that it's not possible to give a path to a file outside that directory.
+// func loadString(filename string) (*CandidateNode, error) {
+// 	// ignore CWE-22 gosec issue - that's more targetted for http based apps that run in a public directory,
+// 	// and ensuring that it's not possible to give a path to a file outside that directory.
 
-	filebytes, err := ioutil.ReadFile(filename) // #nosec
-	if err != nil {
-		return nil, err
-	}
+// 	filebytes, err := ioutil.ReadFile(filename) // #nosec
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: string(filebytes)}}, nil
-}
+// 	return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: string(filebytes)}}, nil
+// }
 
-func loadYaml(filename string) (*CandidateNode, error) {
+// func loadYaml(filename string) (*CandidateNode, error) {
 
-	file, err := os.Open(filename) // #nosec
-	if err != nil {
-		return nil, err
-	}
-	reader := bufio.NewReader(file)
+// 	file, err := os.Open(filename) // #nosec
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	reader := bufio.NewReader(file)
 
-	documents, err := readDocuments(reader, filename, 0)
-	if err != nil {
-		return nil, err
-	}
+// 	documents, err := readDocuments(reader, filename, 0)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if documents.Len() == 0 {
-		// return null candidate
-		return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null"}}, nil
-	} else if documents.Len() == 1 {
-		return documents.Front().Value.(*CandidateNode), nil
+// 	if documents.Len() == 0 {
+// 		// return null candidate
+// 		return &CandidateNode{Node: &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null"}}, nil
+// 	} else if documents.Len() == 1 {
+// 		return documents.Front().Value.(*CandidateNode), nil
 
-	} else {
-		sequenceNode := &CandidateNode{Node: &yaml.Node{Kind: yaml.SequenceNode}}
-		for doc := documents.Front(); doc != nil; doc = doc.Next() {
-			sequenceNode.Node.Content = append(sequenceNode.Node.Content, doc.Value.(*CandidateNode).Node)
-		}
-		return sequenceNode, nil
-	}
-}
+// 	} else {
+// 		sequenceNode := &CandidateNode{Node: &yaml.Node{Kind: yaml.SequenceNode}}
+// 		for doc := documents.Front(); doc != nil; doc = doc.Next() {
+// 			sequenceNode.Node.Content = append(sequenceNode.Node.Content, doc.Value.(*CandidateNode).Node)
+// 		}
+// 		return sequenceNode, nil
+// 	}
+// }
 
-func loadYamlOperator(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error) {
-	log.Debugf("loadYamlOperator")
+// func loadYamlOperator(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error) {
+// 	log.Debugf("loadYamlOperator")
 
-	loadPrefs := expressionNode.Operation.Preferences.(loadPrefs)
+// 	loadPrefs := expressionNode.Operation.Preferences.(loadPrefs)
 
-	// need to evaluate the 1st parameter against the context
-	// and return the data accordingly.
+// 	// need to evaluate the 1st parameter against the context
+// 	// and return the data accordingly.
 
-	var results = list.New()
+// 	var results = list.New()
 
-	for el := context.MatchingNodes.Front(); el != nil; el = el.Next() {
-		candidate := el.Value.(*CandidateNode)
+// 	for el := context.MatchingNodes.Front(); el != nil; el = el.Next() {
+// 		candidate := el.Value.(*CandidateNode)
 
-		rhs, err := d.GetMatchingNodes(context.SingleReadonlyChildContext(candidate), expressionNode.Rhs)
-		if err != nil {
-			return Context{}, err
-		}
-		if rhs.MatchingNodes.Front() == nil {
-			return Context{}, fmt.Errorf("Filename expression returned nil")
-		}
-		nameCandidateNode := rhs.MatchingNodes.Front().Value.(*CandidateNode)
+// 		rhs, err := d.GetMatchingNodes(context.SingleReadonlyChildContext(candidate), expressionNode.Rhs)
+// 		if err != nil {
+// 			return Context{}, err
+// 		}
+// 		if rhs.MatchingNodes.Front() == nil {
+// 			return Context{}, fmt.Errorf("Filename expression returned nil")
+// 		}
+// 		nameCandidateNode := rhs.MatchingNodes.Front().Value.(*CandidateNode)
 
-		filename := nameCandidateNode.Node.Value
+// 		filename := nameCandidateNode.Node.Value
 
-		var contentsCandidate *CandidateNode
+// 		var contentsCandidate *CandidateNode
 
-		if loadPrefs.loadAsString {
-			contentsCandidate, err = loadString(filename)
-		} else {
-			contentsCandidate, err = loadYaml(filename)
-		}
-		if err != nil {
-			return Context{}, fmt.Errorf("Failed to load %v: %w", filename, err)
-		}
+// 		if loadPrefs.loadAsString {
+// 			contentsCandidate, err = loadString(filename)
+// 		} else {
+// 			contentsCandidate, err = loadYaml(filename)
+// 		}
+// 		if err != nil {
+// 			return Context{}, fmt.Errorf("Failed to load %v: %w", filename, err)
+// 		}
 
-		results.PushBack(contentsCandidate)
+// 		results.PushBack(contentsCandidate)
 
-	}
+// 	}
 
-	return context.ChildContext(results), nil
-}
+// 	return context.ChildContext(results), nil
+// }

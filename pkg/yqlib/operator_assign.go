@@ -2,8 +2,10 @@ package yqlib
 
 func assignUpdateFunc(d *dataTreeNavigator, context Context, lhs *CandidateNode, rhs *CandidateNode) (*CandidateNode, error) {
 	rhs.Node = unwrapDoc(rhs.Node)
-	lhs.UpdateFrom(rhs)
-	return lhs, nil
+	updateNode := lhs.Merge(rhs)
+	err := lhs.ReplaceWith(updateNode)
+
+	return lhs, err
 }
 
 func assignUpdateOperator(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error) {
@@ -33,7 +35,11 @@ func assignUpdateOperator(d *dataTreeNavigator, context Context, expressionNode 
 		if first != nil {
 			rhsCandidate := first.Value.(*CandidateNode)
 			rhsCandidate.Node = unwrapDoc(rhsCandidate.Node)
-			candidate.UpdateFrom(rhsCandidate)
+			updatedNode := candidate.Merge(rhsCandidate)
+			err := candidate.ReplaceWith(updatedNode)
+			if err != nil {
+				return Context{}, err
+			}
 		}
 	}
 
@@ -60,7 +66,13 @@ func assignAttributesOperator(d *dataTreeNavigator, context Context, expressionN
 		first := rhs.MatchingNodes.Front()
 
 		if first != nil {
-			candidate.UpdateAttributesFrom(first.Value.(*CandidateNode))
+			updatedNode := candidate.MergeAttributes(first.Value.(*CandidateNode))
+
+			err := candidate.ReplaceWith(updatedNode)
+			if err != nil {
+				return Context{}, err
+			}
+
 		}
 	}
 	return context, nil

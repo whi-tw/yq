@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"fmt"
 
+	"github.com/goccy/go-yaml/ast"
 	"github.com/jinzhu/copier"
-	"gopkg.in/yaml.v3"
 )
 
 type operatorHandler func(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error)
@@ -36,10 +36,10 @@ func compoundAssignFunction(d *dataTreeNavigator, context Context, expressionNod
 	return context, nil
 }
 
-func unwrapDoc(node *yaml.Node) *yaml.Node {
-	if node.Kind == yaml.DocumentNode {
-		return node.Content[0]
-	}
+func unwrapDoc(node ast.Node) ast.Node {
+	// if node.Kind == yaml.DocumentNode {
+	// 	return node.Content[0]
+	// }
 	return node
 }
 
@@ -139,12 +139,7 @@ func crossFunction(d *dataTreeNavigator, context Context, expressionNode *Expres
 }
 
 func createBooleanCandidate(owner *CandidateNode, value bool) *CandidateNode {
-	valString := "true"
-	if !value {
-		valString = "false"
-	}
-	node := &yaml.Node{Kind: yaml.ScalarNode, Value: valString, Tag: "!!bool"}
-	return owner.CreateChild(nil, node)
+	return owner.CreateReplacementCandidate(&ast.BoolNode{Value: value})
 }
 
 func createTraversalTree(path []interface{}, traversePrefs traversePreferences, targetKey bool) *ExpressionNode {

@@ -3,7 +3,7 @@ package yqlib
 import (
 	"container/list"
 
-	yaml "gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml/ast"
 )
 
 /*
@@ -23,26 +23,27 @@ func collectObjectOperator(d *dataTreeNavigator, originalContext Context, expres
 	context := originalContext.WritableClone()
 
 	if context.MatchingNodes.Len() == 0 {
-		node := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Value: "{}"}
-		candidate := &CandidateNode{Node: node}
+		candidate := &CandidateNode{Node: &ast.MappingNode{}}
 		return context.SingleChildContext(candidate), nil
 	}
-	first := context.MatchingNodes.Front().Value.(*CandidateNode)
-	var rotated []*list.List = make([]*list.List, len(first.Node.Content))
 
-	for i := 0; i < len(first.Node.Content); i++ {
+	first := context.MatchingNodes.Front().Value.(*CandidateNode)
+	firstNode := first.Node.(*ast.SequenceNode)
+	var rotated []*list.List = make([]*list.List, len(firstNode.Values))
+
+	for i := 0; i < len(firstNode.Values); i++ {
 		rotated[i] = list.New()
 	}
 
 	for el := context.MatchingNodes.Front(); el != nil; el = el.Next() {
 		candidateNode := el.Value.(*CandidateNode)
-		for i := 0; i < len(first.Node.Content); i++ {
-			rotated[i].PushBack(candidateNode.CreateChild(i, candidateNode.Node.Content[i]))
+		for i := 0; i < len(firstNode.Values); i++ {
+			rotated[i].PushBack(candidateNode.CreateArrayChild(i, candidateNode.Node.(*ast.SequenceNode).Values[i]))
 		}
 	}
 
 	newObject := list.New()
-	for i := 0; i < len(first.Node.Content); i++ {
+	for i := 0; i < len(firstNode.Values); i++ {
 		additions, err := collect(d, context.ChildContext(list.New()), rotated[i])
 		if err != nil {
 			return Context{}, err

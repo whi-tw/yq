@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-yaml/ast"
 	logging "gopkg.in/op/go-logging.v1"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -22,8 +23,8 @@ type operationType struct {
 	Handler    operatorHandler
 }
 
-var orOpType = &operationType{Type: "OR", NumArgs: 2, Precedence: 20, Handler: orOperator}
-var andOpType = &operationType{Type: "AND", NumArgs: 2, Precedence: 20, Handler: andOperator}
+// var orOpType = &operationType{Type: "OR", NumArgs: 2, Precedence: 20, Handler: orOperator}
+// var andOpType = &operationType{Type: "AND", NumArgs: 2, Precedence: 20, Handler: andOperator}
 var reduceOpType = &operationType{Type: "REDUCE", NumArgs: 2, Precedence: 35, Handler: reduceOperator}
 
 var blockOpType = &operationType{Type: "BLOCK", Precedence: 10, NumArgs: 2, Handler: emptyOperator}
@@ -33,7 +34,8 @@ var unionOpType = &operationType{Type: "UNION", NumArgs: 2, Precedence: 10, Hand
 var pipeOpType = &operationType{Type: "PIPE", NumArgs: 2, Precedence: 30, Handler: pipeOperator}
 
 var assignOpType = &operationType{Type: "ASSIGN", NumArgs: 2, Precedence: 40, Handler: assignUpdateOperator}
-var addAssignOpType = &operationType{Type: "ADD_ASSIGN", NumArgs: 2, Precedence: 40, Handler: addAssignOperator}
+
+// var addAssignOpType = &operationType{Type: "ADD_ASSIGN", NumArgs: 2, Precedence: 40, Handler: addAssignOperator}
 var subtractAssignOpType = &operationType{Type: "SUBTRACT_ASSIGN", NumArgs: 2, Precedence: 40, Handler: subtractAssignOperator}
 
 var assignAttributesOpType = &operationType{Type: "ASSIGN_ATTRIBUTES", NumArgs: 2, Precedence: 40, Handler: assignAttributesOperator}
@@ -41,13 +43,16 @@ var assignStyleOpType = &operationType{Type: "ASSIGN_STYLE", NumArgs: 2, Precede
 var assignVariableOpType = &operationType{Type: "ASSIGN_VARIABLE", NumArgs: 2, Precedence: 40, Handler: assignVariableOperator}
 var assignTagOpType = &operationType{Type: "ASSIGN_TAG", NumArgs: 2, Precedence: 40, Handler: assignTagOperator}
 var assignCommentOpType = &operationType{Type: "ASSIGN_COMMENT", NumArgs: 2, Precedence: 40, Handler: assignCommentsOperator}
-var assignAnchorOpType = &operationType{Type: "ASSIGN_ANCHOR", NumArgs: 2, Precedence: 40, Handler: assignAnchorOperator}
-var assignAliasOpType = &operationType{Type: "ASSIGN_ALIAS", NumArgs: 2, Precedence: 40, Handler: assignAliasOperator}
+
+// var assignAnchorOpType = &operationType{Type: "ASSIGN_ANCHOR", NumArgs: 2, Precedence: 40, Handler: assignAnchorOperator}
+// var assignAliasOpType = &operationType{Type: "ASSIGN_ALIAS", NumArgs: 2, Precedence: 40, Handler: assignAliasOperator}
 
 var multiplyOpType = &operationType{Type: "MULTIPLY", NumArgs: 2, Precedence: 42, Handler: multiplyOperator}
-var addOpType = &operationType{Type: "ADD", NumArgs: 2, Precedence: 42, Handler: addOperator}
+
+// var addOpType = &operationType{Type: "ADD", NumArgs: 2, Precedence: 42, Handler: addOperator}
 var subtractOpType = &operationType{Type: "SUBTRACT", NumArgs: 2, Precedence: 42, Handler: subtractOperator}
-var alternativeOpType = &operationType{Type: "ALTERNATIVE", NumArgs: 2, Precedence: 42, Handler: alternativeOperator}
+
+// var alternativeOpType = &operationType{Type: "ALTERNATIVE", NumArgs: 2, Precedence: 42, Handler: alternativeOperator}
 
 var equalsOpType = &operationType{Type: "EQUALS", NumArgs: 2, Precedence: 40, Handler: equalsOperator}
 var notEqualsOpType = &operationType{Type: "EQUALS", NumArgs: 2, Precedence: 40, Handler: notEqualsOperator}
@@ -62,11 +67,12 @@ var collectOpType = &operationType{Type: "COLLECT", NumArgs: 0, Precedence: 50, 
 var encodeOpType = &operationType{Type: "ENCODE", NumArgs: 0, Precedence: 50, Handler: encodeOperator}
 var decodeOpType = &operationType{Type: "DECODE", NumArgs: 0, Precedence: 50, Handler: decodeOperator}
 
-var anyOpType = &operationType{Type: "ANY", NumArgs: 0, Precedence: 50, Handler: anyOperator}
-var allOpType = &operationType{Type: "ALL", NumArgs: 0, Precedence: 50, Handler: allOperator}
+// var anyOpType = &operationType{Type: "ANY", NumArgs: 0, Precedence: 50, Handler: anyOperator}
+// var allOpType = &operationType{Type: "ALL", NumArgs: 0, Precedence: 50, Handler: allOperator}
 var containsOpType = &operationType{Type: "CONTAINS", NumArgs: 1, Precedence: 50, Handler: containsOperator}
-var anyConditionOpType = &operationType{Type: "ANY_CONDITION", NumArgs: 1, Precedence: 50, Handler: anyOperator}
-var allConditionOpType = &operationType{Type: "ALL_CONDITION", NumArgs: 1, Precedence: 50, Handler: allOperator}
+
+// var anyConditionOpType = &operationType{Type: "ANY_CONDITION", NumArgs: 1, Precedence: 50, Handler: anyOperator}
+// var allConditionOpType = &operationType{Type: "ALL_CONDITION", NumArgs: 1, Precedence: 50, Handler: allOperator}
 
 var toEntriesOpType = &operationType{Type: "TO_ENTRIES", NumArgs: 0, Precedence: 50, Handler: toEntriesOperator}
 var fromEntriesOpType = &operationType{Type: "FROM_ENTRIES", NumArgs: 0, Precedence: 50, Handler: fromEntriesOperator}
@@ -79,14 +85,15 @@ var getVariableOpType = &operationType{Type: "GET_VARIABLE", NumArgs: 0, Precede
 var getStyleOpType = &operationType{Type: "GET_STYLE", NumArgs: 0, Precedence: 50, Handler: getStyleOperator}
 var getTagOpType = &operationType{Type: "GET_TAG", NumArgs: 0, Precedence: 50, Handler: getTagOperator}
 var getCommentOpType = &operationType{Type: "GET_COMMENT", NumArgs: 0, Precedence: 50, Handler: getCommentsOperator}
-var getAnchorOpType = &operationType{Type: "GET_ANCHOR", NumArgs: 0, Precedence: 50, Handler: getAnchorOperator}
-var getAliasOptype = &operationType{Type: "GET_ALIAS", NumArgs: 0, Precedence: 50, Handler: getAliasOperator}
+
+// var getAnchorOpType = &operationType{Type: "GET_ANCHOR", NumArgs: 0, Precedence: 50, Handler: getAnchorOperator}
+// var getAliasOptype = &operationType{Type: "GET_ALIAS", NumArgs: 0, Precedence: 50, Handler: getAliasOperator}
 var getDocumentIndexOpType = &operationType{Type: "GET_DOCUMENT_INDEX", NumArgs: 0, Precedence: 50, Handler: getDocumentIndexOperator}
 var getFilenameOpType = &operationType{Type: "GET_FILENAME", NumArgs: 0, Precedence: 50, Handler: getFilenameOperator}
 var getFileIndexOpType = &operationType{Type: "GET_FILE_INDEX", NumArgs: 0, Precedence: 50, Handler: getFileIndexOperator}
 var getPathOpType = &operationType{Type: "GET_PATH", NumArgs: 0, Precedence: 50, Handler: getPathOperator}
 
-var explodeOpType = &operationType{Type: "EXPLODE", NumArgs: 1, Precedence: 50, Handler: explodeOperator}
+// var explodeOpType = &operationType{Type: "EXPLODE", NumArgs: 1, Precedence: 50, Handler: explodeOperator}
 var sortKeysOpType = &operationType{Type: "SORT_KEYS", NumArgs: 1, Precedence: 50, Handler: sortKeysOperator}
 var joinStringOpType = &operationType{Type: "JOIN", NumArgs: 1, Precedence: 50, Handler: joinStringOperator}
 var subStringOpType = &operationType{Type: "SUBSTR", NumArgs: 1, Precedence: 50, Handler: substituteStringOperator}
@@ -106,7 +113,8 @@ var traverseArrayOpType = &operationType{Type: "TRAVERSE_ARRAY", NumArgs: 2, Pre
 var selfReferenceOpType = &operationType{Type: "SELF", NumArgs: 0, Precedence: 55, Handler: selfOperator}
 var valueOpType = &operationType{Type: "VALUE", NumArgs: 0, Precedence: 50, Handler: valueOperator}
 var envOpType = &operationType{Type: "ENV", NumArgs: 0, Precedence: 50, Handler: envOperator}
-var notOpType = &operationType{Type: "NOT", NumArgs: 0, Precedence: 50, Handler: notOperator}
+
+// var notOpType = &operationType{Type: "NOT", NumArgs: 0, Precedence: 50, Handler: notOperator}
 var emptyOpType = &operationType{Type: "EMPTY", Precedence: 50, Handler: emptyOperator}
 
 var recursiveDescentOpType = &operationType{Type: "RECURSIVE_DESCENT", NumArgs: 0, Precedence: 50, Handler: recursiveDescentOperator}
@@ -197,33 +205,42 @@ func parseInt(numberString string) (string, int64, error) {
 	return "%v", num, err
 }
 
-func createScalarNode(value interface{}, stringValue string) *yaml.Node {
-	var node = &yaml.Node{Kind: yaml.ScalarNode}
-	node.Value = stringValue
+func ReplaceInMap(mapNode *ast.MappingNode, key ast.Node, value ast.Node) (bool, error) {
+	for _, mapValueNode := range mapNode.Values {
+		if mapValueNode.Key == key {
+			err := mapValueNode.Replace(value)
+			return true, err
+		}
+	}
 
+	return false, nil
+}
+
+func createScalarNode(value interface{}, stringValue string) ast.Node {
+	var node ast.Node
 	switch value.(type) {
-	case float32, float64:
-		node.Tag = "!!float"
+	case float32:
+		node = &ast.FloatNode{Precision: 32, Value: value.(float64)}
+	case float64:
+		node = &ast.FloatNode{Precision: 64, Value: value.(float64)}
 	case int, int64, int32:
-		node.Tag = "!!int"
+		node = &ast.IntegerNode{Value: value.(int64)}
 	case bool:
-		node.Tag = "!!bool"
+		node = &ast.BoolNode{Value: value.(bool)}
 	case string:
-		node.Tag = "!!str"
+		node = &ast.StringNode{Value: value.(string)}
 	case nil:
-		node.Tag = "!!null"
+		node = &ast.NullNode{}
 	}
 	return node
 }
 
 func createValueOperation(value interface{}, stringValue string) *Operation {
-	var node *yaml.Node = createScalarNode(value, stringValue)
-
 	return &Operation{
 		OperationType: valueOpType,
 		Value:         value,
 		StringValue:   stringValue,
-		CandidateNode: &CandidateNode{Node: node},
+		CandidateNode: &CandidateNode{Node: createScalarNode(value, stringValue)},
 	}
 }
 
@@ -274,13 +291,13 @@ func NodeToString(node *CandidateNode) string {
 	if errorClosingEncoder != nil {
 		log.Error("Error closing encoder: ", errorClosingEncoder.Error())
 	}
-	tag := value.Tag
-	if value.Kind == yaml.DocumentNode {
-		tag = "doc"
-	} else if value.Kind == yaml.AliasNode {
-		tag = "alias"
-	}
-	return fmt.Sprintf(`D%v, P%v, (%v)::%v`, node.Document, node.Path, tag, buf.String())
+	// tag := value.Tag
+	// if value.Kind == yaml.DocumentNode {
+	// 	tag = "doc"
+	// } else if value.Kind == yaml.AliasNode {
+	// 	tag = "alias"
+	// }
+	return fmt.Sprintf(`D%v, P%v, (%v)::%v`, node.Document, node.Path, "tag", buf.String())
 }
 
 func KindString(kind yaml.Kind) string {

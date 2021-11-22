@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goccy/go-yaml/ast"
 	"github.com/mikefarah/yq/v4/test"
-	yaml "gopkg.in/yaml.v3"
 )
 
 type expressionScenario struct {
@@ -70,7 +70,7 @@ func testScenario(t *testing.T, s *expressionScenario) {
 		candidateNode := &CandidateNode{
 			Document:  0,
 			Filename:  "",
-			Node:      &yaml.Node{Tag: "!!null", Kind: yaml.ScalarNode},
+			Node:      &ast.NullNode{},
 			FileIndex: 0,
 		}
 		inputs.PushBack(candidateNode)
@@ -104,12 +104,7 @@ func resultsToString(t *testing.T, results *list.List) []string {
 			return nil
 		}
 
-		tag := n.Node.Tag
-		if n.Node.Kind == yaml.DocumentNode {
-			tag = "doc"
-		} else if n.Node.Kind == yaml.AliasNode {
-			tag = "alias"
-		}
+		tag := n.Node.Type().YAMLName()
 		output := fmt.Sprintf(`D%v, P%v, (%v)::%v`, n.Document, n.Path, tag, valueBuffer.String())
 		pretty = append(pretty, output)
 	}
@@ -278,7 +273,7 @@ func documentOutput(t *testing.T, w *bufio.Writer, s expressionScenario, formatt
 		candidateNode := &CandidateNode{
 			Document:  0,
 			Filename:  "",
-			Node:      &yaml.Node{Tag: "!!null", Kind: yaml.ScalarNode},
+			Node:      &ast.NullNode{},
 			FileIndex: 0,
 		}
 		inputs.PushBack(candidateNode)

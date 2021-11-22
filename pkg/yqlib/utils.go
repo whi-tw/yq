@@ -2,13 +2,15 @@ package yqlib
 
 import (
 	"bufio"
+	"bytes"
 	"container/list"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
 	"strings"
 
-	yaml "gopkg.in/yaml.v3"
+	parser "github.com/goccy/go-yaml/parser"
 )
 
 func readStream(filename string, leadingContentPreProcessing bool) (io.Reader, string, error) {
@@ -106,33 +108,29 @@ func processReadStream(reader *bufio.Reader) (io.Reader, string, error) {
 }
 
 func readDocuments(reader io.Reader, filename string, fileIndex int) (*list.List, error) {
-	decoder := yaml.NewDecoder(reader)
 	inputList := list.New()
-	var currentIndex uint = 0
 
-	for {
-		var dataBucket yaml.Node
-		errorReading := decoder.Decode(&dataBucket)
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, reader); err != nil {
+		return nil, fmt.Errorf("failed to copy from reader: %w", err)
+	}
 
-		if errorReading == io.EOF {
-			switch reader := reader.(type) {
-			case *os.File:
-				safelyCloseFile(reader)
-			}
-			return inputList, nil
-		} else if errorReading != nil {
-			return nil, errorReading
-		}
+	f, err := parser.ParseBytes(buf.Bytes(), parser.ParseComments)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode: %w", err)
+	}
+
+	for index, doc := range f.Docs {
+		currentIndex := uint(index)
 		candidateNode := &CandidateNode{
 			Document:         currentIndex,
 			Filename:         filename,
-			Node:             &dataBucket,
+			Node:             doc,
 			FileIndex:        fileIndex,
 			EvaluateTogether: true,
 		}
-
 		inputList.PushBack(candidateNode)
-
-		currentIndex = currentIndex + 1
 	}
+	return inputList, nil
 }

@@ -26,7 +26,7 @@ func getLayoutAndOtherParam(other string, d *dataTreeNavigator, context Context,
 	formatString := ""
 	var err error
 
-	if expressionNode.RHS.Operation.OperationType == blockOpType {
+	if expressionNode.RHS.Operation.OperationType == blockOpType || expressionNode.RHS.Operation.OperationType == unionOpType {
 		layout, err = getStringParamter("layout", d, context.ReadOnlyClone(), expressionNode.RHS.LHS)
 
 		if err != nil {
@@ -34,12 +34,12 @@ func getLayoutAndOtherParam(other string, d *dataTreeNavigator, context Context,
 		}
 
 		// we must have been given a layout and other.
-		if formatString, err = getStringParamter("other", d, context.ReadOnlyClone(), expressionNode.RHS.RHS); err != nil {
+		if formatString, err = getStringParamter(other, d, context.ReadOnlyClone(), expressionNode.RHS.RHS); err != nil {
 			return "", "", err
 		}
 
 	} else {
-		if formatString, err = getStringParamter("other", d, context.ReadOnlyClone(), expressionNode.RHS); err != nil {
+		if formatString, err = getStringParamter(other, d, context.ReadOnlyClone(), expressionNode.RHS); err != nil {
 			return "", "", err
 		}
 

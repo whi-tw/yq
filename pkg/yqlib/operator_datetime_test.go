@@ -33,7 +33,7 @@ var dateTimeOperatorScenarios = []expressionScenario{
 	},
 	{
 		description:    "Timezone: from standard RFC3339 format",
-		subdescription: "Returns a new datetime in the specified timezone. Specify standard IANA Time Zone format or 'utc', 'local'. When given a single paramter, this assumes the datetime is in RFC3339 format.",
+		subdescription: "Returns a new datetime in the specified timezone. Specify standard IANA Time Zone format or 'utc', 'local'. When given a single parameter, this assumes the datetime is in RFC3339 format.",
 
 		document:   "a: cool",
 		expression: `.updated = (now | tz("Australia/Sydney"))`,
@@ -46,6 +46,15 @@ var dateTimeOperatorScenarios = []expressionScenario{
 		subdescription: "Specify standard IANA Time Zone format or 'utc', 'local'",
 		document:       "a: Saturday, 15-Dec-01 at 2:59AM GMT",
 		expression:     `.a |= tz("Monday, 02-Jan-06 at 3:04PM MST"; "Australia/Sydney")`,
+		expected: []string{
+			"D0, P[], (doc)::a: Saturday, 15-Dec-01 at 1:59PM AEDT\n",
+		},
+	},
+	{
+		description: "allow comma",
+		skipDoc:     true,
+		document:    "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+		expression:  `.a |= tz("Monday, 02-Jan-06 at 3:04PM MST", "Australia/Sydney")`,
 		expected: []string{
 			"D0, P[], (doc)::a: Saturday, 15-Dec-01 at 1:59PM AEDT\n",
 		},

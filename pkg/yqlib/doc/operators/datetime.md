@@ -17,8 +17,8 @@ Note that versions prior to 4.18 require the 'eval/e' command to be specified.&#
 `yq e <exp> <file>`
 {% endhint %}
 
-## Format: from ISO standard date time
-Providing a single parameter assumes a standard ISO datetime format. If the target format is not a valid yaml datetime format, the result will be a string tagged node.
+## Format: from standard RFC3339 format
+Providing a single parameter assumes a standard RFC3339 datetime format. If the target format is not a valid yaml datetime format, the result will be a string tagged node.
 
 Given a sample.yml file of:
 ```yaml
@@ -62,5 +62,38 @@ will output
 ```yaml
 a: cool
 updated: 2021-05-19T01:02:03Z
+```
+
+## Timezone: from standard RFC3339 format
+Returns a new datetime in the specified timezone. Specify standard IANA Time Zone format or 'utc', 'local'. When given a single paramter, this assumes the datetime is in RFC3339 format.
+
+Given a sample.yml file of:
+```yaml
+a: cool
+```
+then
+```bash
+yq '.updated = (now | tz("Australia/Sydney"))' sample.yml
+```
+will output
+```yaml
+a: cool
+updated: 2021-05-19T11:02:03+10:00
+```
+
+## Timezone: with custom format
+Specify standard IANA Time Zone format or 'utc', 'local'
+
+Given a sample.yml file of:
+```yaml
+a: Saturday, 15-Dec-01 at 2:59AM GMT
+```
+then
+```bash
+yq '.a |= tz("Monday, 02-Jan-06 at 3:04PM MST"; "Australia/Sydney")' sample.yml
+```
+will output
+```yaml
+a: Saturday, 15-Dec-01 at 1:59PM AEDT
 ```
 

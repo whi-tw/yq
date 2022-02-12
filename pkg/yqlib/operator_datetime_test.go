@@ -23,6 +23,14 @@ var dateTimeOperatorScenarios = []expressionScenario{
 			"D0, P[], (doc)::a: 2001-12-15\n",
 		},
 	},
+	{
+		description: "Now",
+		document:    "a: cool",
+		expression:  `.updated = now`,
+		expected: []string{
+			"D0, P[], (doc)::a: cool\nupdated: 2021-05-19T01:02:03Z\n",
+		},
+	},
 }
 
 func TestDatetimeOperatorScenarios(t *testing.T) {

@@ -17,7 +17,7 @@ Note that versions prior to 4.18 require the 'eval/e' command to be specified.&#
 `yq e <exp> <file>`
 {% endhint %}
 
-## Format from ISO standard date time
+## Format: from ISO standard date time
 Providing a single parameter assumes a standard ISO datetime format. If the target format is not a valid yaml datetime format, the result will be a string tagged node.
 
 Given a sample.yml file of:
@@ -33,7 +33,7 @@ will output
 a: Saturday, 15-Dec-01 at 2:59AM
 ```
 
-## Format from custom date time
+## Format: from custom date time
 if the target format is a valid yaml datetime format, then it will automatically get the !!timestamp tag.
 
 Given a sample.yml file of:
@@ -47,5 +47,20 @@ yq '.a |= format_datetime("Monday, 02-Jan-06 at 3:04PM"; "2006-01-02")' sample.y
 will output
 ```yaml
 a: 2001-12-15
+```
+
+## Now
+Given a sample.yml file of:
+```yaml
+a: cool
+```
+then
+```bash
+yq '.updated = now' sample.yml
+```
+will output
+```yaml
+a: cool
+updated: 2021-05-19T01:02:03Z
 ```
 

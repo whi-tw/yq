@@ -48,6 +48,21 @@ func getParams(d *dataTreeNavigator, context Context, expressionNode *Expression
 
 }
 
+// for unit tests
+var Now = time.Now
+
+func nowOp(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error) {
+
+	node := &yaml.Node{
+		Tag:   "!!timestamp",
+		Kind:  yaml.ScalarNode,
+		Value: Now().Format(time.RFC3339),
+	}
+
+	return context.SingleChildContext(&CandidateNode{Node: node}), nil
+
+}
+
 func formatDateTime(d *dataTreeNavigator, context Context, expressionNode *ExpressionNode) (Context, error) {
 	layout, format, err := getParams(d, context, expressionNode)
 	decoder := NewYamlDecoder()

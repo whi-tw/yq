@@ -1,6 +1,6 @@
-# Format
+# Date Time
 
-Various operators for formatting.
+Various operators for parsing and manipulating dates. 
 
 ## format_date time
 This uses the golangs built in time library for parsing and formatting date times.

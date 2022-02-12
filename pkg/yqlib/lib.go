@@ -84,6 +84,9 @@ var collectOpType = &operationType{Type: "COLLECT", NumArgs: 1, Precedence: 50, 
 var mapOpType = &operationType{Type: "MAP", NumArgs: 1, Precedence: 50, Handler: mapOperator}
 var evalOpType = &operationType{Type: "EVAL", NumArgs: 1, Precedence: 50, Handler: evalOperator}
 var mapValuesOpType = &operationType{Type: "MAP_VALUES", NumArgs: 1, Precedence: 50, Handler: mapValuesOperator}
+
+var formatDateTimeOpType = &operationType{Type: "FORMAT_DATE_TIME", NumArgs: 1, Precedence: 50, Handler: formatDateTime}
+
 var encodeOpType = &operationType{Type: "ENCODE", NumArgs: 0, Precedence: 50, Handler: encodeOperator}
 var decodeOpType = &operationType{Type: "DECODE", NumArgs: 0, Precedence: 50, Handler: decodeOperator}
 
